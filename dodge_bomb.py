@@ -2,6 +2,7 @@ import os
 import sys
 import pygame as pg
 import random
+import time
 
 WIDTH, HEIGHT = 1100, 650
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -18,6 +19,29 @@ def check_bound(obj_rct:pg.Rect) -> tuple[bool,bool]:
     if obj_rct.top < 0 or HEIGHT< obj_rct.bottom: # 縦方向判定
         tate = False
     return yoko, tate
+
+def gameover(screen: pg.Surface) -> None:
+    black_img = pg.Surface((WIDTH, HEIGHT))
+    pg.draw.rect(black_img, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
+    black_img.set_alpha(150)
+
+    cry_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
+    cry_rct1 = cry_img.get_rect()
+    cry_rct1.center = WIDTH//2 - 200, HEIGHT//2
+    cry_rct2 = cry_img.get_rect()
+    cry_rct2.center = WIDTH//2 + 200, HEIGHT//2
+
+    fonto= pg.font.Font(None, 80)
+    txt= fonto.render("Game Over",True, (255, 255, 255))
+    txt_rct = txt.get_rect()
+    txt_rct.center = WIDTH//2, HEIGHT//2
+
+    screen.blit(black_img, [0, 0])
+    screen.blit(txt, txt_rct)
+    screen.blit(cry_img, cry_rct1)
+    screen.blit(cry_img, cry_rct2)
+    pg.display.update()
+    time.sleep(5)
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -51,6 +75,7 @@ def main():
             if event.type == pg.QUIT: 
                 return
         if kk_rct.colliderect(bb_rct):
+            gameover(screen)
             return
         screen.blit(bg_img, [0, 0]) 
         key_lst = pg.key.get_pressed()
