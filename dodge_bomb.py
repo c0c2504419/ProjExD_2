@@ -71,7 +71,7 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
         pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
         bb_img.set_colorkey((0, 0, 0))  # 爆弾の背景透明化
         bb_imgs.append(bb_img)      
-    return bb_imgs, bb_accs
+    return bb_imgs, bb_accs  # 爆弾の大きさのデータと速度のデータを返す
 
 
 def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
