@@ -19,8 +19,9 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def check_bound(obj_rct:pg.Rect) -> tuple[bool,bool]:
     """
-    引数：こうかとんRectかばくだんRect
-    戻り値：タプル（横方向判定結果，縦方向判定結果）
+    引数で与えられたRectが画面内科画面外貨を判定する関数
+    引数：こうかとんRectまたはばくだんRect
+    戻り値：横方向判定結果，縦方向判定結果
     画面内ならTrue,画面外ならFalse
     """
     yoko, tate = True, True
@@ -50,12 +51,12 @@ def gameover(screen: pg.Surface) -> None:
     txt_rct = txt.get_rect()
     txt_rct.center = WIDTH//2, HEIGHT//2  
 
-    screen.blit(black_img, [0, 0])
-    screen.blit(txt, txt_rct)
-    screen.blit(cry_img, cry_rct1)
-    screen.blit(cry_img, cry_rct2)
+    screen.blit(black_img, [0, 0])  #ブラックアウト
+    screen.blit(txt, txt_rct)  #文字表示
+    screen.blit(cry_img, cry_rct1)  #こうかとん1匹目表示
+    screen.blit(cry_img, cry_rct2)  #こうかとん2匹目表示
     pg.display.update()
-    time.sleep(5) 
+    time.sleep(5)  #5秒間表示
 
 
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
@@ -64,11 +65,11 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     戻り値：爆弾Surfaceのリスト, 加速度のリスト
     """
     bb_accs = [a for a in range(1, 11)]  #加速度のリスト
-    bb_imgs = []
+    bb_imgs = []  #爆弾Surfaceのリスト
     for r in range(1, 11):
         bb_img = pg.Surface((20*r, 20*r))
         pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
-        bb_img.set_colorkey((0, 0, 0))
+        bb_img.set_colorkey((0, 0, 0))  #爆弾の背景透明化
         bb_imgs.append(bb_img)      
     return bb_imgs, bb_accs
 
@@ -78,8 +79,8 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     移動量タプルと対応する画像Surfaceの辞書を返す関数
     戻り値：{(横移動量, 縦移動量): Surface}
     """
-    kk_img0 = pg.image.load("fig/3.png")
-    kk_img_r = pg.transform.flip(kk_img0, True, False) 
+    kk_img0 = pg.image.load("fig/3.png")  #こうかとんの画像
+    kk_img_r = pg.transform.flip(kk_img0, True, False)  #画像を左右または上下に反転させる
     
     return {
         ( 0,  0): pg.transform.rotozoom(kk_img_r, 0, 0.9),   # 静止（右向き）
@@ -103,14 +104,14 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]
     dx = dst.centerx - org.centerx  #差ベクトルを求めるためcnterx使用
     dy = dst.centery - org.centery  #上同様にcenteryを使用
     
-    dist = math.sqrt(dx**2 + dy**2)
+    dist = math.sqrt(dx**2 + dy**2)  #爆弾とこうかとんの間の直線距離(斜辺)
 
     if dist < 300:
         return current_xy
     
     norm = math.sqrt(50)
-    vx = (dx / dist) * norm
-    vy = (dy / dist) * norm
+    vx = (dx / dist) * norm  #  差ベクトルdx正規化
+    vy = (dy / dist) * norm  #  差ベクトルdy正規化
     
     return vx, vy
 
@@ -121,7 +122,7 @@ def main():
 
     bg_img = pg.image.load("fig/pg_bg.jpg")    
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)    
-    kk_imgs = get_kk_imgs()
+    kk_imgs = get_kk_imgs()  #こうかとんの方向変える関数に入れる
     kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
@@ -150,17 +151,17 @@ def main():
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
 
-        for key, mv in DELTA.items():
+        for key, mv in DELTA.items():  #歩行キー辞書から持ってくる
             if key_lst[key]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
             if tuple(sum_mv) in kk_imgs:
                 kk_img = kk_imgs[tuple(sum_mv)]
-        kk_rct.move_ip(sum_mv)
+        kk_rct.move_ip(sum_mv)  #こうかとん動く
         
         
         if check_bound(kk_rct) != (True, True): #画面外だったら
-            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])  #画面から出て行かないようにする
         # 壁反射の処理
         yoko, tate = check_bound(bb_rct)
         if not yoko:
@@ -170,15 +171,15 @@ def main():
 
         vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))  #追従型爆弾の関数に入れる
 
-        avx= vx * bb_accs[min(tmr//500, 9)]  #
-        avy = vy * bb_accs[min(tmr//500, 9)]
-        bb_img = bb_imgs[min(tmr//500, 9)]        
+        avx= vx * bb_accs[min(tmr//500, 9)]  #加速したxの速度
+        avy = vy * bb_accs[min(tmr//500, 9)]  #加速したyの速度
+        bb_img = bb_imgs[min(tmr//500, 9)]  #爆弾を大きいものに変更
         bb_rct.width = bb_img.get_width()  #大きさが変わった場合にwidth属性更新
         bb_rct.height = bb_img.get_height()  #大きさが変わった場合にheight属性更新
-        bb_rct.move_ip(avx, avy)          
+        bb_rct.move_ip(avx, avy)  #爆弾動かす      
 
         screen.blit(bg_img, [0, 0])
-        screen.blit(kk_img, kk_rct)
+        screen.blit(kk_img, kk_rct)  
         #bb_rct.move_ip(vx,vy)
         screen.blit(bb_img, bb_rct)
         pg.display.update()
