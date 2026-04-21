@@ -63,11 +63,31 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     return bb_imgs, bb_accs
 
 
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+ 
+    kk_img0 = pg.image.load("fig/3.png")
+    kk_img_r = pg.transform.flip(kk_img0, True, False) 
+    
+    return {
+        ( 0,  0): pg.transform.rotozoom(kk_img_r, 0, 0.9),   # 静止（右向き）
+        (+5,  0): pg.transform.rotozoom(kk_img_r, 0, 0.9),   # 右
+        (+5, -5): pg.transform.rotozoom(kk_img_r, 45, 0.9),  # 右上
+        ( 0, -5): pg.transform.rotozoom(kk_img_r, 90, 0.9),  # 上
+        (-5, -5): pg.transform.rotozoom(kk_img0, -45, 0.9),  # 左上
+        (-5,  0): pg.transform.rotozoom(kk_img0, 0, 0.9),    # 左
+        (-5, +5): pg.transform.rotozoom(kk_img0, 45, 0.9),   # 左下
+        ( 0, +5): pg.transform.rotozoom(kk_img_r, -90, 0.9), # 下
+        (+5, +5): pg.transform.rotozoom(kk_img_r, -45, 0.9), # 右下
+    }
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)    
+    kk_imgs = get_kk_imgs()
+    kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
 
@@ -106,6 +126,8 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+            if tuple(sum_mv) in kk_imgs:
+                kk_img = kk_imgs[tuple(sum_mv)]
         kk_rct.move_ip(sum_mv)
         
         if check_bound(kk_rct) != (True, True):
